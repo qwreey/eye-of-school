@@ -3,6 +3,13 @@
   import { type FullVpnStatus } from "./types"
   import RecentVpnCard from "./class/RecentVpnCard.svelte";
   //(new Date()).toUTCString()
+
+  // 브라우저 테마
+  let theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    theme = event.matches ? "dark" : "light";
+  })
+
   let groups = [
     {
       groupId: "computer1",
@@ -55,7 +62,7 @@
       <p class="subtitle">최근 vpn 사용 기기</p>
       <div id="recent-vpn">
         {#each recentVpnStates.map(element=>getFullVpnStatus(element)) as state}
-         <RecentVpnCard state={state}/>
+         <RecentVpnCard state={state} theme={theme}/>
         {/each}
       </div>
       <p class="subtitle">최근 프로그램 설치 내역</p>
