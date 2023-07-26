@@ -5,7 +5,7 @@ import mongodb, { MongoClient } from "mongodb"
 
 configDotenv() // .env 불러오기
 
-const instance = fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>()
+const instance = fastify({ logger: true, trustProxy: true }).withTypeProvider<TypeBoxTypeProvider>()
 
 // 라우터 불러오기
 import InsertEvent from "./routes/InsertEvent"
@@ -14,6 +14,7 @@ import GetGroups from "./routes/GetGroups"
 import GetDevices from "./routes/GetDevices"
 import BulkFetch from "./routes/BulkFetch"
 import GetAllowedIps from "./routes/GetAllowedIps"
+import GetMyIP from "./routes/GetMyIP"
 
 // DB 등록
 (async ()=>{
@@ -32,6 +33,7 @@ import GetAllowedIps from "./routes/GetAllowedIps"
     instance.register(GetDevices)
     instance.register(BulkFetch)
     instance.register(GetAllowedIps)
+    instance.register(GetMyIP)
 
     // 시작
     instance.listen({
