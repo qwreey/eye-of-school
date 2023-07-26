@@ -13,6 +13,7 @@ import GetRecentEvents from "./routes/GetRecentEvents"
 import GetGroups from "./routes/GetGroups"
 import GetDevices from "./routes/GetDevices"
 import BulkFetch from "./routes/BulkFetch"
+import GetAllowedIps from "./routes/GetAllowedIps"
 
 // DB 등록
 (async ()=>{
@@ -30,6 +31,7 @@ import BulkFetch from "./routes/BulkFetch"
     instance.register(GetGroups)
     instance.register(GetDevices)
     instance.register(BulkFetch)
+    instance.register(GetAllowedIps)
 
     // 시작
     instance.listen({

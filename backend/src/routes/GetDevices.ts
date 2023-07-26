@@ -12,6 +12,7 @@ export const responseType = Type.Array(Type.Object({
     groupId: Type.String(),
     deviceId: Type.String(),
     displayName: Type.String(),
+    allowedIps: Type.String(),
 }))
 
 export default function (instance: instance, _options:any, done:VoidFunction) {
