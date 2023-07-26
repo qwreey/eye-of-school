@@ -14,6 +14,8 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
         }
     }).toArray())
 
+    result.sort((a,b)=>b.date-a.date)
+
     result.forEach(element=>{
         element.date = (new Date(element.date)).toUTCString()
     })

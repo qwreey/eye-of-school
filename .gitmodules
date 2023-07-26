@@ -1,0 +1,6 @@
+[submodule "client/src/deps/random"]
+	path = client/src/deps/random
+	url = https://github.com/qwreey75/random.lua
+[submodule "client/src/deps/logger"]
+	path = client/src/deps/logger
+	url = https://github.com/qwreey75/logger.lua
