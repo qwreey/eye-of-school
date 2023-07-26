@@ -20,7 +20,7 @@ export async function insertEvent(instance: instance,eventObject: eventType) {
     if (eventObject.publicIp) data.publicIp = eventObject.publicIp
     if (eventObject.publisher) data.publisher = eventObject.publisher
 
-    await collection.insertOne(eventObject)
+    await collection.insertOne(data)
 }
 
 export default function (instance: instance, _options:any, done:VoidFunction) {
