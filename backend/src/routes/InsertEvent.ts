@@ -13,7 +13,8 @@ export async function insertEvent(instance: instance,eventObject: eventType) {
     data.eventId = eventObject.eventId
     data.type = eventObject.type
     data.deviceId = eventObject.deviceId
-    data.date = eventObject.date ? +(new Date(eventObject.date)) : Date.now()
+    if (eventObject.date) data.date = +(new Date(eventObject.date))
+    else data.date = Date.now()
     if (eventObject.appName) data.appName = eventObject.appName
     if (eventObject.installLocation) data.installLocation = eventObject.installLocation
     if (eventObject.publicIp) data.publicIp = eventObject.publicIp
