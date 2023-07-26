@@ -124,7 +124,7 @@ style:--shadow-color={theme == "dark" ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.3)"}
 style:--splitter-color={theme == "dark" ? "rgba(127,127,127,0.2)" : "rgba(0,0,0,0.1)"}
 style:--card-color={theme == "dark" ? "rgb(36,36,36)" : "rgb(248,248,248)"}
 style:--scrollbar-color={theme == "dark" ? "rgb(200,200,200)" : "rgb(60,60,60)"}
-style:--main-background={theme == "dark" ? "rgb(10, 10, 10)" : "rgb(255, 255, 255)"}
+style:--main-background={theme == "dark" ? "rgb(30, 30, 30)" : "rgb(255, 255, 255)"}
 style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 0, 0.87)"}>
   <div class="header">
     <p class="title">사용현황 관리 콘솔</p>
