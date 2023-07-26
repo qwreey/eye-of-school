@@ -34,6 +34,7 @@ export type InstallState = {
   appName: string,
   date: string,
   installLocation: string,
+  type: "InstallState"
 }
 
 export type Group = {
@@ -52,4 +53,5 @@ export type VpnState = {
   deviceId: DeviceId,
   publicIp: string,
   date: string,
+  type: "VpnState"
 }

@@ -11,6 +11,10 @@
   import RecentVpnCard from "./class/RecentVpnCard.svelte"
   import RecentInstallCard from "./class/RecentInstallCard.svelte"
   import LoadingCircle from "./icons/LoadingCircle.svelte"
+  import { onMount } from "svelte"
+
+  const apiURL = "localhost:9102"
+  // const apiURL = location.origin + "/api"
 
   // 브라우저 테마
   let theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"
@@ -41,6 +45,7 @@
       publisher: "Colossal Order Ltd",
       installLocation: "D:\\sdf",
       appName: "Cities: Skylines",
+      type: "InstallState",
     }
   ]
 
@@ -53,30 +58,35 @@
         deviceId: "computer1.22",
         publicIp: "123.123.123.123",
         date: "Tue, 12 Jul 2023 09:31:35 GMT",
+        type: "VpnState",
       },
       {
         eventId: "21312333",
         deviceId: "computer1.22",
         publicIp: "123.123.123.123",
         date: "Tue, 12 Jul 2023 09:31:35 GMT",
+        type: "VpnState",
       },
       {
         eventId: "21312333",
         deviceId: "computer1.22",
         publicIp: "123.123.123.123",
         date: "Tue, 12 Jul 2023 09:31:35 GMT",
+        type: "VpnState",
       },
       {
         eventId: "21312333",
         deviceId: "computer1.22",
         publicIp: "123.123.123.123",
         date: "Tue, 12 Jul 2023 09:31:35 GMT",
+        type: "VpnState",
       },
       {
         eventId: "21312333",
         deviceId: "computer1.22",
         publicIp: "123.123.123.123",
         date: "Tue, 12 Jul 2023 09:31:35 GMT",
+        type: "VpnState",
       }
     ]
   },2000)
@@ -117,6 +127,24 @@
       dateDisplayString: formatDateString(new Date(vpnState.date)),
     }
   }
+
+  async function fetchDatasFromAPI() {
+    let result:{devices:Device[],groups:Group[],recentEvents:(VpnState|InstallState)[]} = await (await fetch(apiURL + "/bulk-fetch",{
+      method: "POST",
+      body: JSON.stringify({
+        groups: true, devices: true, recentEvents: { perid: 2592000 }
+      })
+    })).json()
+
+    groups = result.devices
+    devices = result.devices
+    recentInstallStates = result.recentEvents.filter(element=>element.type == "InstallState") as unknown as InstallState[]
+    recentVpnStates = result.recentEvents.filter(element=>element.type == "VpnState") as unknown as VpnState[]
+  }
+
+  onMount(async()=>{
+    await fetchDatasFromAPI()
+  })
 </script>
 
 <main
