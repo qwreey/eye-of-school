@@ -13,12 +13,12 @@
     <p class="name">{state.displayName}</p>
   </div>
   <div class="line">
-    <TimerIcon height="24" width="24" theme={theme}/>
-    <p class="name">{state.dateDisplayString}</p>
-  </div>
-  <div class="line">
     <SatelliteIcon height="24" width="24" theme={theme}/>
     <p class="name">{state.publicIp}</p>
+  </div>
+  <div class="line">
+    <TimerIcon height="24" width="24" theme={theme}/>
+    <p class="name">{state.dateDisplayString}</p>
   </div>
 </div>
 <style lang="scss">
@@ -36,4 +36,5 @@
       flex-direction: row;
     }
   }
+  p { color: var(--text-color); }
 </style>
