@@ -18,7 +18,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "check": "tsx src/index.ts --check"
+    "build": "tsc src/index.ts",
+    "check": "tsx src/index.ts --check",
+    "prod": "node dist/index.js"
   }
 }

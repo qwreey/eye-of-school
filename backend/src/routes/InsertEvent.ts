@@ -24,7 +24,7 @@ export async function insertEvent(instance: instance,eventObject: eventType) {
 
 export default function (instance: instance, _options:any, done:VoidFunction) {
 
-    instance.post("/api/bulk-fetch",{
+    instance.post("/api/insert-event",{
         schema: {
             body: eventType,
             response: {
