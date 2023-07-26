@@ -26,7 +26,7 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
 export const eventBaseType = Type.Object({
     eventId: Type.String(),
     deviceId: Type.String(),
-    date: Type.String(),
+    date: Type.Optional(Type.String()),
     type: Type.String({
         examples: ["InstallState", "VpnState"],
     }),
