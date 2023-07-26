@@ -24,7 +24,10 @@ export default function (instance: instance, _options:any, done:VoidFunction) {
             body: Type.Object({
                 groups: Type.Optional(Type.Boolean()),
                 devices: Type.Optional(Type.Boolean()),
-                recentEvents: Type.Optional(Type.Boolean()),
+                recentEvents: Type.Optional(Type.Object({
+                    type: Type.Optional(Type.String()),
+                    period: Type.Number(),
+                })),
             }),
             response: {
                 200: responseType
@@ -39,7 +42,7 @@ export default function (instance: instance, _options:any, done:VoidFunction) {
                 response.groups = (await getGroups(instance)) as unknown as groupResponseType
             }
             if (request.body.recentEvents) {
-                response.recentEvents = (await getRecentEvents(instance,2592000)) as unknown as recentEventResponseType
+                response.recentEvents = (await getRecentEvents(instance,request.body.recentEvents.period,request.body.recentEvents.type)) as unknown as recentEventResponseType
             }
             reply.send(response)
         }
