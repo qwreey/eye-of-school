@@ -7,14 +7,18 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
     let collection = instance.db.collection("events")
     let now = +(new Date())
 
-    return (await collection.find({
+    let result = (await collection.find({
         type: type,
         date: {
             $gte: now - period
         }
-    }).toArray()).forEach(element=>{
+    }).toArray())
+
+    result.forEach(element=>{
         element.date = (new Date(element.date)).toUTCString()
     })
+
+    return result
 }
 
 export const eventType = Type.Intersect([

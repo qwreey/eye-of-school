@@ -7,32 +7,38 @@ configDotenv() // .env 불러오기
 
 const instance = fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>()
 
-// DB 등록
-instance.register(async (instance:instance, _options:any, done:VoidFunction)=>{
-    const mongoInstance = await new MongoClient(process.env.MONGOURL || "mongodb://localhost:19722").connect()
-    const db = mongoInstance.db(process.env.MONGODB || "eye-of-school")
-    instance.decorate("db",db)
-
-    done()
-})
-
-// 라우터 등록
+// 라우터 불러오기
 import InsertEvent from "./routes/InsertEvent"
-instance.register(InsertEvent)
 import GetRecentEvents from "./routes/GetRecentEvents"
-instance.register(GetRecentEvents)
 import GetGroups from "./routes/GetGroups"
-instance.register(GetGroups)
 import GetDevices from "./routes/GetDevices"
-instance.register(GetDevices)
 import BulkFetch from "./routes/BulkFetch"
-instance.register(BulkFetch)
 
-// 시작 & 타입
-instance.listen({
-    port: parseInt(process.env.PORT || '3000'),
-    host: process.env.HOST || 'localhost',
-})
+// DB 등록
+(async ()=>{
+    // 몽고 연결
+    const url = process.env.MONGOURL || "mongodb://localhost:19722"
+    const mongoInstance = await new MongoClient(url).connect()
+    const dbName = process.env.MONGODB || "eye-of-school"
+    const db = mongoInstance.db(dbName)
+    instance.decorate("db",db)
+    instance.log.info(`DB loaded (${url} : ${dbName})`)
+
+    // 라우터 등록
+    instance.register(InsertEvent)
+    instance.register(GetRecentEvents)
+    instance.register(GetGroups)
+    instance.register(GetDevices)
+    instance.register(BulkFetch)
+
+    // 시작
+    instance.listen({
+        port: parseInt(process.env.PORT || '3000'),
+        host: process.env.HOST || 'localhost',
+    })
+})()
+
+// 타입
 declare module 'fastify' {
     interface FastifyInstance {
         db: mongodb.Db
