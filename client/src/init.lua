@@ -25,7 +25,8 @@ end
 -- 설치
 local configPath = path.join(os.getenv("LOCALAPPDATA"),"eos.json")
 local copyTo = path.join(os.getenv("LOCALAPPDATA"),"eos.exe")
-if true or args[1] == "install" then
+local scriptTo = path.join(os.getenv("LOCALAPPDATA"),"eos.vbs")
+if args[1] == "install" then
     if not checkPermission() then
         logger.error("관리자 권한이 아님.")
         process:exit(1)
@@ -33,7 +34,7 @@ if true or args[1] == "install" then
     end
 
     process.stdout:write("등록에 사용할 deviceId 입력 ... > ")
-    local deviceId = readInput()
+    local deviceId = readInput():gsub("[\n\r]","")
 
     fs.writeFileSync(configPath,
         json.encode({
@@ -42,6 +43,11 @@ if true or args[1] == "install" then
         })
     )
     fs.writeFileSync(copyTo,fs.readFileSync(args[0])) -- 자가복제
+    fs.writeFileSync(scriptTo,[[Set oShell = CreateObject ("Wscript.Shell")
+Dim strArgs
+strArgs = "]]..copyTo..[["
+oShell.Run strArgs, 0, false
+]])
 
     logger.info("스캐쥴 등록중")
     spawn("schtasks",{ -- 이미 있던 스캐줄 제거
@@ -56,7 +62,7 @@ if true or args[1] == "install" then
         args = {
             "/create",
             "/tn","VPNCHECKER", -- 스캐줄 이름 지정
-            "/tr", copyTo,
+            "/tr", scriptTo,
             "/sc","onlogon" -- 로그인시 사용되도록 지정
         },
         stdio = {0,1,2}
