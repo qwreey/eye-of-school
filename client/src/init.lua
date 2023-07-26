@@ -64,10 +64,12 @@ if true or args[1] == "install" then
     -- 오류 발생시
     if errorCode ~= 0 then
         logger.error("오류가 발생했습니다. 설치 명령은 관리자 권한을 필요로 하므로\n관리자 권한으로 cmd 를 실행하였는지 확인해주세요")
+        logger.info("엔터를 눌러 종료합니다")
         readInput()
         process:exit(1)
     else
         logger.infof("명령 %s 가 등록되었습니다.",copyTo)
+        logger.info("엔터를 눌러 종료합니다")
         readInput()
         process:exit(0)
     end
