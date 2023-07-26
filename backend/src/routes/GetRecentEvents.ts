@@ -8,9 +8,9 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
     let now = +(new Date())
 
     let result = (await collection.find({
-        type: type,
+        // type: type,
         date: {
-            $gte: now - period
+            $gte: now - period*1000
         }
     }).toArray())
 
@@ -21,23 +21,31 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
     return result
 }
 
-export const eventType = Type.Intersect([
-    Type.Object({
-        eventId: Type.String(),
-        deviceId: Type.String(),
-        date: Type.String(),
-        type: Type.String({
-            examples: ["InstallState", "VpnState"],
-        }),
+export const eventBaseType = Type.Object({
+    eventId: Type.String(),
+    deviceId: Type.String(),
+    date: Type.String(),
+    type: Type.String({
+        examples: ["InstallState", "VpnState"],
     }),
+})
+export const installEventType = Type.Intersect([
+    eventBaseType,
     Type.Object({ // installState
         publisher: Type.String(),
         appName: Type.String(),
         installLocation: Type.String(),
-    }),
-    Type.Object({ // vpnState
+    })
+])
+export const vpnEventType = Type.Intersect([
+    eventBaseType,
+    Type.Object({ // installState
         publicIp: Type.String(),
     })
+])
+
+export const eventType = Type.Union([
+    installEventType,vpnEventType
 ])
 export const responseType = Type.Array(eventType)
 
