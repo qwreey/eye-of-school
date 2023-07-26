@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { type FullVpnStatus } from "../types"
-  export let state:FullVpnStatus
+  import { type FullVpnState } from "../types"
+  export let state:F
   export let theme:string
 
   import DesktopIcon from "../icons/DeviceIcon.svelte"

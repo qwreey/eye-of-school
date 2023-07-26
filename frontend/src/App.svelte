@@ -1,7 +1,20 @@
 <script lang="ts">
   import { formatDateString } from "./lib/common"
-  import { type FullVpnStatus } from "./types"
+  import {
+    type FullVpnState,
+    type FullInstallState,
+    type VpnState,
+    type InstallState,
+
+    type Device,
+
+    type Group
+
+
+
+  } from "./types"
   import RecentVpnCard from "./class/RecentVpnCard.svelte"
+    import RecentInstallCard from "./class/RecentInstallCard.svelte";
 
   // 브라우저 테마
   let theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"
@@ -11,20 +24,20 @@
   })
   console.log(`theme changed: ${theme}`)
 
-  let groups = [
+  let groups:Group[] = [
     {
       groupId: "computer1",
       displayName: "컴퓨터 1실",
     }
   ]
-  let devices = [
+  let devices:Device[] = [
     {
       deviceId: "computer1.22",
       displayName: "22번 컴퓨터",
       groupId: "computer1",
     }
   ]
-  let recentVpnStates = [
+  let recentVpnStates:VpnState[] = [
     {
       eventId: "21312333",
       deviceId: "computer1.22",
@@ -56,31 +69,49 @@
       date: "Tue, 12 Jul 2023 09:31:35 GMT",
     }
   ]
-  let recentInstallStates = [
+  let recentInstallStates:InstallState[] = [
     {
       eventId: "21312333",
       deviceId: "computer1.22",
       date: "Tue, 12 Jul 2023 09:31:35 GMT",
       publisher: "Colossal Order Ltd",
       installLocation: "D:\\sdf",
-      displayName: "Cities: Skylines",
+      appName: "Cities: Skylines",
     }
   ]
-  function getFullVpnStatus(vpnStatus):FullVpnStatus {
-    let device = devices.find(device=>device.deviceId==vpnStatus.deviceId)
-    if (!device) throw new Error(`디바이스 ${vpnStatus.deviceId} 를 찾지 못했습니다`)
+  function getFullInstallState(installState:InstallState):FullInstallState {
+    let device = devices.find(device=>device.deviceId==vpnState.deviceId)
+    if (!device) throw new Error(`디바이스 ${vpnState.deviceId} 를 찾지 못했습니다`)
     let group = groups.find(group=>group.groupId==device.groupId)
     if (!device) throw new Error(`그룹 ${device.groupId} 를 찾지 못했습니다`)
 
     return {
-      deviceId: vpnStatus.deviceId,
+      deviceId: installState.deviceId,
       groupId: device.groupId,
-      eventId: vpnStatus.eventId,
+      eventId: installState.eventId,
       groupDisplayName: group.displayName,
       deviceDisplayName: device.displayName,
       displayName: `${group.displayName} - ${device.displayName}`,
-      publicIp: vpnStatus.publicIp,
-      dateDisplayString: formatDateString(new Date(vpnStatus.date)),
+      dateDisplayString: formatDateString(new Date(installState.date)),
+      appName: installState.appName,
+      publisher: installState.publisher,
+    }
+  }
+  function getFullVpnState(vpnState:VpnState):FullVpnState {
+    let device = devices.find(device=>device.deviceId==vpnState.deviceId)
+    if (!device) throw new Error(`디바이스 ${vpnState.deviceId} 를 찾지 못했습니다`)
+    let group = groups.find(group=>group.groupId==device.groupId)
+    if (!device) throw new Error(`그룹 ${device.groupId} 를 찾지 못했습니다`)
+
+    return {
+      deviceId: vpnState.deviceId,
+      groupId: device.groupId,
+      eventId: vpnState.eventId,
+      groupDisplayName: group.displayName,
+      deviceDisplayName: device.displayName,
+      displayName: `${group.displayName} - ${device.displayName}`,
+      publicIp: vpnState.publicIp,
+      dateDisplayString: formatDateString(new Date(vpnState.date)),
     }
   }
 </script>
@@ -100,7 +131,7 @@ style:--scrollbar-color={theme == "dark" ? "rgb(200,200,200)" : "rgb(60,60,60)"}
         <p class="subtitle">최근 vpn 사용 기기</p>
       </div>
       <div class="content">
-        {#each recentVpnStates.map(element=>getFullVpnStatus(element)) as state,index}
+        {#each recentVpnStates.map(element=>getFullVpnState(element)) as state,index}
           <RecentVpnCard state={state} theme={theme}/>
           {#if index+1 != recentVpnStates.length}
             <div class="splitter"/>
@@ -117,7 +148,12 @@ style:--scrollbar-color={theme == "dark" ? "rgb(200,200,200)" : "rgb(60,60,60)"}
         <p class="subtitle">최근 프로그램 설치 내역</p>
       </div>
       <div class="content">
-
+        {#each recentInstallStates.map(element=>getFullInstallState(element)) as state,index}
+          <RecentInstallCard state={state} theme={theme}/>
+          {#if index+1 != recentVpnStates.length}
+            <div class="splitter"/>
+          {/if}
+        {/each}
       </div>
       {#if recentInstallStates.length == 0}
         <p class="card-placeholder">아무것도 없어요 (한달간 기록이 비어있어요)</p>
@@ -184,16 +220,19 @@ style:--scrollbar-color={theme == "dark" ? "rgb(200,200,200)" : "rgb(60,60,60)"}
     }
   }
 
+  // 최근 상황 카드 그리드/리스트 조절
   @media (min-width: 820px) {
     #content-recent {
       display: grid;
       grid-template-columns: 1fr 1fr;
       transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
       .card {
+        max-height: 360px;
         margin: 6px;
-        max-height: 300px;
       }
       margin: 6px;
     }
   }
+
+
 </style>

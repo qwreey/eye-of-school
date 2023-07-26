@@ -1,12 +1,12 @@
 export type id = string
-export type deviceId = id
-export type groupId  = id
-export type eventId  = id
+export type DeviceId = id
+export type GroupId  = id
+export type EventId  = id
 
-export type FullVpnStatus = {
-  deviceId: deviceId,
-  groupId:  groupId,
-  eventId:  eventId,
+export type FullVpnState = {
+  deviceId: DeviceId,
+  groupId:  GroupId,
+  eventId:  EventId,
   groupDisplayName: string,
   deviceDisplayName: string,
   displayName: string,
@@ -14,20 +14,42 @@ export type FullVpnStatus = {
   dateDisplayString: string,
 }
 
-export type group = {
-  groupId: groupId,
+export type FullInstallState = {
+  deviceId: DeviceId,
+  groupId:  GroupId,
+  eventId:  EventId,
+  groupDisplayName: string,
+  deviceDisplayName: string,
+  displayName: string,
+  dateDisplayString: string,
+  publisher: string,
+  appName: string,
+  installLocation:string
+}
+
+export type InstallState = {
+  eventId:  EventId,
+  deviceId: DeviceId,
+  publisher: string,
+  appName: string,
+  date: string,
+  installLocation: string,
+}
+
+export type Group = {
+  groupId: GroupId,
   displayName: string,
 }
 
-export type devices = {
-  groupId: groupId,
-  deviceId: deviceId,
+export type Device = {
+  groupId: GroupId,
+  deviceId: DeviceId,
   displayName: string,
 }
 
-export type vpnState = {
-  eventId: eventId,
-  deviceId: deviceId,
+export type VpnState = {
+  eventId: EventId,
+  deviceId: DeviceId,
   publicIp: string,
   date: string,
 }
