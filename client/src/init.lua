@@ -314,6 +314,7 @@ coroutine.wrap(function ()
         pass,result = pcall(main_checkprog)
         if not pass then logger.errorf("fail checprog %s",result) end
 
+	logger.info("ok")
         timer.sleep(60000) -- 60 초 쉼
     end
 end)()
