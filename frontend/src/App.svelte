@@ -271,11 +271,12 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
   // 최근 상황 카드 그리드/리스트 조절
   @media (min-width: 820px) {
     #content-recent {
+      height: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
       transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
       .card {
-        max-height: calc(100%);
+        max-height: calc(100% - 12px);
         // max-height: 360px;
         margin: 6px;
       }
