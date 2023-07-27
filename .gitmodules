@@ -4,3 +4,6 @@
 [submodule "client/src/deps/logger"]
 	path = client/src/deps/logger
 	url = https://github.com/qwreey75/logger.lua
+[submodule "client/src/deps/promise"]
+	path = client/src/deps/promise
+	url = https://github.com/qwreey75/promise.lua

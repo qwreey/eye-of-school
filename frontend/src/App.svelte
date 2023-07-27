@@ -309,7 +309,8 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
       grid-template-columns: 1fr 1fr;
       transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
       .card {
-        max-height: 360px;
+        max-height: calc(100%);
+        // max-height: 360px;
         margin: 6px;
       }
       margin: 6px;

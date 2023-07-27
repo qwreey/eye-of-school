@@ -17,7 +17,9 @@ let monthAgoFormat = [
 export function formatDateString(date:Date):string {
   let diff = (Date.now() - +date)/1000
   let ago = "미래"
-  if (diff < 60) { // 분보다 작음
+  if (diff < 0) {
+    ago = '방금 전'
+  } else if (diff < 60) { // 분보다 작음
     ago = `${diff}초 전`
   } else if (diff < 3600) { // 시간보다 작음
     ago = `${Math.floor(diff/60)}분 전`

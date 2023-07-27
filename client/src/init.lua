@@ -4,6 +4,7 @@ local path = require "path"
 local timer = require "timer"
 local fs = require "fs"
 local random = require "random"
+local promise = require "promise"
 local logger = require "logger"
 local spawn = require "coro-spawn"
 
@@ -22,6 +23,101 @@ local function checkPermission()
     return fs.existsSync(path.resolve(path.join(process.env.SYSTEMROOT,"SYSTEM32/WDI/LOGFILES")))
 end
 
+-- dict2hashmap
+local function dict2hashmap(dict)
+    local hashmap = {}
+    for i,v in pairs(dict) do
+        hashmap[v] = true
+    end
+    return hashmap
+end
+local function hashmap2dict(hashmap)
+    local dict = {}
+    for i,v in pairs(hashmap) do
+        table.insert(dict,i)
+    end
+    return dict
+end
+
+-- 설치된 프로그램 목록 가져옴
+local function getInstalledPrograms()
+    local wow64 = spawn("reg",{ -- 스캐줄 등록
+        args = {
+            "QUERY",
+            [[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall]]
+        },
+        stdio = {0,true,true}
+    })
+    local currwow64 = spawn("reg",{ -- 스캐줄 등록
+        args = {
+            "QUERY",
+            [[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall]]
+        },
+        stdio = {0,true,true}
+    })
+    local wow32 = spawn("reg",{ -- 스캐줄 등록
+        args = {
+            "QUERY",
+            [[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall]]
+        },
+        stdio = {0,true,true}
+    })
+    local currwow32 = spawn("reg",{ -- 스캐줄 등록
+        args = {
+            "QUERY",
+            [[HKEY_CURRENT_USER\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall]]
+        },
+        stdio = {0,true,true}
+    })
+
+    wow64.waitExit()
+    currwow64.waitExit()
+    wow32.waitExit()
+    currwow32.waitExit()
+
+    local stdout = {}
+    for str in wow64.stdout.read do
+        table.insert(stdout,str)
+    end
+    for str in currwow64.stdout.read do
+        table.insert(stdout,str)
+    end
+    for str in wow32.stdout.read do
+        table.insert(stdout,str)
+    end
+    for str in currwow32.stdout.read do
+        table.insert(stdout,str)
+    end
+    local programs = {}
+    for prog in table.concat(stdout,"\n"):gsub("\r",""):gmatch("[^\n]+") do
+        table.insert(programs,prog)
+    end
+
+    return programs
+end
+local function getProgramInfo(regdir)
+    local reg = spawn("reg",{ -- 스캐줄 등록
+        args = {
+            "QUERY",
+            regdir
+        },
+        stdio = {0,true,2}
+    })
+    reg.waitExit()
+
+    local stdout = {}
+    for str in reg.stdout.read do
+        table.insert(stdout,str)
+    end
+    local str = table.concat(stdout,"\n")
+
+    return {
+        appName = str:match(" *DisplayName *REG_SZ *([^\n\r]+)");
+        installLocation = str:match(" *InstallLocation *REG_SZ *([^\n\r]+)");
+        publisher = str:match(" *Publisher *REG_SZ *([^\n\r]+)");
+    }
+end
+
 -- 설치
 local configPath = path.join(os.getenv("LOCALAPPDATA"),"eos.json")
 local copyTo = path.join(os.getenv("LOCALAPPDATA"),"eos.exe")
@@ -34,12 +130,12 @@ if args[1] == "install" then
     end
 
     process.stdout:write("등록에 사용할 deviceId 입력 ... > ")
-    local deviceId = readInput():gsub("[\n\r]","")
+    local deviceId = readInput():gsub("[\n\r]+","")
 
     fs.writeFileSync(configPath,
         json.encode({
             deviceId = deviceId;
-            programs = {};
+            programs = getInstalledPrograms();
         })
     )
     fs.writeFileSync(copyTo,fs.readFileSync(args[0])) -- 자가복제
@@ -86,6 +182,11 @@ end
 local config = json.decode(fs.readFileSync(configPath))
 local deviceId = config.deviceId
 
+-- save config
+local function saveConfig()
+    fs.writeFileSync(configPath,json.encode(config))
+end
+
 -- allowed ip 가져오기
 local allowedIps
 local function getAllowedIps()
@@ -121,37 +222,97 @@ end
 -- vpn 기록
 local function recordVPN(thisIP)
     local header,body = http.request("POST","https://eos.qwreey.kr/api/insert-event",{{"Content-type","application/json"}},json.encode({
-        deviceId = deviceId;
+        deviceId = deviceId:gsub("[\n\r]+","");
         type = "VpnState";
         eventId = random.makeId();
         publicIp = thisIP;
     }))
 end
 
+local function recordInstall(thisInstall)
+    local header,body = http.request("POST","https://eos.qwreey.kr/api/insert-event",{{"Content-type","application/json"}},json.encode({
+        deviceId = deviceId:gsub("[\n\r]+","");
+        type = "InstallState";
+        eventId = random.makeId();
+        appName = thisInstall.appName;
+        installLocation = thisInstall.installLocation;
+        publisher = thisInstall.publisher;
+    }))
+end
+
+local function main_checkip()
+    local ok,thisIP = pcall(getIP)
+    if ok then
+        local isAllowed = checkIpAllowed(thisIP)
+
+        -- allowed 아님! (반복 아닌경우)
+        if (not isAllowed) and thisIP ~= lastTriggerIp then
+            lastTriggerIp = thisIP
+            logger.infof("아이피 변동 감지. 새 아이피 %s",thisIP)
+            -- 이벤트 기록
+            local ok2,err = pcall(recordVPN,thisIP)
+            if not ok2 then logger.info("error on record %s",err) end
+        end
+
+        -- vpn 껐으면 초기화
+        if isAllowed then
+            lastTriggerIp = nil
+        end
+    else
+        logger.errorf("error on ip get request %s",thisIP)
+    end
+end
+local function main_checkprog()
+    local nowPrograms = getInstalledPrograms()
+    local oldProgramsHash = dict2hashmap(config.programs)
+    local installedPrograms = {}
+    local waitter = promise.waitter()
+    for _,v in ipairs(nowPrograms) do
+        if not oldProgramsHash[v] then
+            waitter:add(promise.new(function()
+                table.insert(installedPrograms,getProgramInfo(v))
+            end))
+        end
+    end
+    waitter:wait()
+    if #installedPrograms ~= 0 then
+        -- 추가된게 있음
+        for _,v in ipairs(installedPrograms) do
+            recordInstall(v)
+            logger.infof("설치 기록됨 %s",v.appName)
+        end
+        config.programs = nowPrograms
+        saveConfig()
+        return
+    end
+    -- 지운경우
+    local nowProgramsHash = dict2hashmap(nowPrograms)
+    local changed
+    for _,v in ipairs(config.programs) do
+        if not nowProgramsHash[v] then
+            changed = true
+            logger.infof("프로그램 지워짐 %s",v)
+        end
+    end
+    if changed then
+        config.programs = nowPrograms
+        saveConfig()
+    end
+end
+
 -- 확인 루프
 coroutine.wrap(function ()
     while true do
+        local pass,result
+
         -- IP 얻고 allowed 상태 확인
-        local ok,thisIP = pcall(getIP)
-        if ok then
-            local isAllowed = checkIpAllowed(thisIP)
+        pass,result = pcall(main_checkip)
+        if not pass then logger.errorf("fail checkip %s",result) end
 
-            -- allowed 아님! (반복 아닌경우)
-            if (not isAllowed) and thisIP ~= lastTriggerIp then
-                lastTriggerIp = thisIP
-                logger.infof("아이피 변동 감지. 새 아이피 %s",thisIP)
-                -- 이벤트 기록
-                local ok2,err = pcall(recordVPN,thisIP)
-                if not ok2 then logger.info("error on record %s",err) end
-            end
+        -- 프로그램 확인
+        pass,result = pcall(main_checkprog)
+        if not pass then logger.errorf("fail checprog %s",result) end
 
-            -- vpn 껐으면 초기화
-            if isAllowed then
-                lastTriggerIp = nil
-            end
-        else
-            logger.errorf("error on ip get request %s",thisIP)
-        end
-        timer.sleep(30000) -- 30 초 쉼
+        timer.sleep(60000) -- 60 초 쉼
     end
 end)()
