@@ -270,6 +270,9 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
 
   // 최근 상황 카드 그리드/리스트 조절
   @media (min-width: 820px) {
+    main {
+      overflow: hidden;
+    }
     #content-recent {
       height: calc(100% - 50px);
       display: grid;
