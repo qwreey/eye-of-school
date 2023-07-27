@@ -238,6 +238,7 @@ local function recordInstall(thisInstall)
         installLocation = thisInstall.installLocation;
         publisher = thisInstall.publisher;
     }))
+    logger.info(body)
 end
 
 local function main_checkip()
