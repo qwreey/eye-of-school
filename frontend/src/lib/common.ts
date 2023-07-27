@@ -20,7 +20,7 @@ export function formatDateString(date:Date):string {
   if (diff < 0) {
     ago = '방금 전'
   } else if (diff < 60) { // 분보다 작음
-    ago = `${diff}초 전`
+    ago = `${Math.floor(diff)}초 전`
   } else if (diff < 3600) { // 시간보다 작음
     ago = `${Math.floor(diff/60)}분 전`
   } else if (diff < 86400) { // 하루보다 작음
