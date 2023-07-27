@@ -12,9 +12,10 @@
   import RecentInstallCard from "./class/RecentInstallCard.svelte"
   import LoadingCircle from "./icons/LoadingCircle.svelte"
   import { onMount } from "svelte"
+  import axios from "axios"
+  import ReloadIcon from "./icons/ReloadIcon.svelte"
 
-  const apiURL = "localhost:9102"
-  // const apiURL = location.origin + "/api"
+  const apiURL = "https://eos.qwreey.kr/api"
 
   // 브라우저 테마
   let theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"
@@ -23,73 +24,12 @@
   })
 
   // 데이터들
-  let groups:Group[] = [
-    {
-      groupId: "computer1",
-      displayName: "컴퓨터 1실",
-    }
-  ]
-  let devices:Device[] = [
-    {
-      deviceId: "computer1.22",
-      displayName: "22번 컴퓨터",
-      groupId: "computer1",
-    }
-  ]
+  let groups:Group[] = []
+  let devices:Device[] = []
   let recentVpnStates:VpnState[] = []
-  let recentInstallStates:InstallState[] = [
-    {
-      eventId: "21312333",
-      deviceId: "computer1.22",
-      date: "Tue, 12 Jul 2023 09:31:35 GMT",
-      publisher: "Colossal Order Ltd",
-      installLocation: "D:\\sdf",
-      appName: "Cities: Skylines",
-      type: "InstallState",
-    }
-  ]
+  let recentInstallStates:InstallState[] = []
 
   let loading:boolean = true
-  setTimeout(()=>{
-    loading = false
-    recentVpnStates = [
-      {
-        eventId: "21312333",
-        deviceId: "computer1.22",
-        publicIp: "123.123.123.123",
-        date: "Tue, 12 Jul 2023 09:31:35 GMT",
-        type: "VpnState",
-      },
-      {
-        eventId: "21312333",
-        deviceId: "computer1.22",
-        publicIp: "123.123.123.123",
-        date: "Tue, 12 Jul 2023 09:31:35 GMT",
-        type: "VpnState",
-      },
-      {
-        eventId: "21312333",
-        deviceId: "computer1.22",
-        publicIp: "123.123.123.123",
-        date: "Tue, 12 Jul 2023 09:31:35 GMT",
-        type: "VpnState",
-      },
-      {
-        eventId: "21312333",
-        deviceId: "computer1.22",
-        publicIp: "123.123.123.123",
-        date: "Tue, 12 Jul 2023 09:31:35 GMT",
-        type: "VpnState",
-      },
-      {
-        eventId: "21312333",
-        deviceId: "computer1.22",
-        publicIp: "123.123.123.123",
-        date: "Tue, 12 Jul 2023 09:31:35 GMT",
-        type: "VpnState",
-      }
-    ]
-  },2000)
 
   function getFullInstallState(installState:InstallState):FullInstallState {
     let device = devices.find(device=>device.deviceId==installState.deviceId)
@@ -129,21 +69,22 @@
   }
 
   async function fetchDatasFromAPI() {
-    let result:{devices:Device[],groups:Group[],recentEvents:(VpnState|InstallState)[]} = await (await fetch(apiURL + "/bulk-fetch",{
-      method: "POST",
-      body: JSON.stringify({
-        groups: true, devices: true, recentEvents: { perid: 2592000 }
-      })
-    })).json()
+    let result:{data:{devices:Device[],groups:Group[],recentEvents:(VpnState|InstallState)[]}} =
+    await axios.post(apiURL + "/bulk-fetch",{
+      groups: true, devices: true, recentEvents: { period: 2592000 }
+    })
 
-    groups = result.devices
-    devices = result.devices
-    recentInstallStates = result.recentEvents.filter(element=>element.type == "InstallState") as unknown as InstallState[]
-    recentVpnStates = result.recentEvents.filter(element=>element.type == "VpnState") as unknown as VpnState[]
+    groups = result.data.devices
+    devices = result.data.devices
+    recentInstallStates = result.data.recentEvents.filter(element=>element.type == "InstallState") as unknown as InstallState[]
+    recentVpnStates = result.data.recentEvents.filter(element=>element.type == "VpnState") as unknown as VpnState[]
   }
 
   onMount(async()=>{
     await fetchDatasFromAPI()
+    loading = false
+    console.log("loaded")
+    setInterval(fetchDatasFromAPI,60000)
   })
 </script>
 
@@ -155,10 +96,18 @@ style:--scrollbar-color={theme == "dark" ? "rgb(200,200,200)" : "rgb(60,60,60)"}
 style:--main-background={theme == "dark" ? "rgb(30, 30, 30)" : "rgb(255, 255, 255)"}
 style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 0, 0.87)"}>
   <div class="header">
+    <div class="placeholder"></div>
     <p class="title">사용현황 관리 콘솔</p>
+    <button class="reload" on:click={async ()=>{
+      if (loading) return
+      loading = true
+      await fetchDatasFromAPI()
+      loading = false
+    }}>
+      <ReloadIcon height="30" width="30" theme={theme}/>
+    </button>
   </div>
   <div id="content-recent">
-
     <div class="card" id="recent-vpn">
       <div class="subtitle-holder">
         <p class="subtitle">최근 vpn 사용 기기</p>
@@ -185,9 +134,9 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
       <div class="subtitle-holder">
         <p class="subtitle">최근 프로그램 설치 내역</p>
       </div>
-      {#if recentVpnStates.length == 0 && !loading}
+      {#if recentInstallStates.length == 0 && !loading}
       <p class="card-placeholder">아무것도 없어요 (한달간 기록이 비어있어요)</p>
-      {:else if !loading || recentVpnStates.length !== 0}
+      {:else if !loading || recentInstallStates.length !== 0}
       <div class="content">
         {#each recentInstallStates.map(element=>getFullInstallState(element)) as state,index}
         <RecentInstallCard state={state} theme={theme}/>
@@ -223,6 +172,23 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
 
   // 해더
   .header {
+    .placeholder {
+      width: 50px;
+    }
+    .reload {
+      width: 50px;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      height: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    p {
+      margin: auto;
+    }
+    flex-wrap: wrap;
     position: sticky;
     top: 0px;
     z-index: 20;
@@ -242,7 +208,7 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
   .card {
     // 아무것도 없어요 텍스트
     .card-placeholder {
-      margin: 0 0 12px 12px;
+      margin: 20px 0 12px 12px;
     }
 
     // 로딩 서클

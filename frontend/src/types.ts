@@ -46,6 +46,7 @@ export type Device = {
   groupId: GroupId,
   deviceId: DeviceId,
   displayName: string,
+  allowedIps: string[],
 }
 
 export type VpnState = {
