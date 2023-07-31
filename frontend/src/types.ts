@@ -30,10 +30,10 @@ export type FullInstallState = {
 export type InstallState = {
   eventId:  EventId,
   deviceId: DeviceId,
-  publisher: string,
-  appName: string,
+  publisher?: string,
+  appName?: string,
   date: string,
-  installLocation: string,
+  installLocation?: string,
   type: "InstallState"
 }
 

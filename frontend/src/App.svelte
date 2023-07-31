@@ -45,9 +45,9 @@
       deviceDisplayName: device.displayName,
       displayName: `${group.displayName} - ${device.displayName}`,
       dateDisplayString: formatDateString(new Date(installState.date)),
-      appName: installState.appName,
-      publisher: installState.publisher,
-      installLocation: installState.installLocation,
+      appName: installState.appName || "알 수 없음",
+      publisher: installState.publisher || "알 수 없음",
+      installLocation: installState.installLocation || "알 수 없음",
     }
   }
   function getFullVpnState(vpnState:VpnState):FullVpnState {

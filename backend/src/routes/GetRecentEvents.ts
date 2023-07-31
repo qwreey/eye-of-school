@@ -23,32 +23,18 @@ export async function getRecentEvents(instance: instance,period: number,type?: s
     return result
 }
 
-export const eventBaseType = Type.Object({
+export const eventType = Type.Object({ // installState
     eventId: Type.String(),
     deviceId: Type.String(),
     date: Type.Optional(Type.String()),
     type: Type.String({
         examples: ["InstallState", "VpnState"],
     }),
+    publisher: Type.Optional(Type.String()),
+    appName: Type.Optional(Type.String()),
+    installLocation: Type.Optional(Type.String()),
+    publicIp: Type.Optional(Type.String()),
 })
-export const installEventType = Type.Intersect([
-    eventBaseType,
-    Type.Object({ // installState
-        publisher: Type.String(),
-        appName: Type.String(),
-        installLocation: Type.String(),
-    })
-])
-export const vpnEventType = Type.Intersect([
-    eventBaseType,
-    Type.Object({ // installState
-        publicIp: Type.String(),
-    })
-])
-
-export const eventType = Type.Union([
-    installEventType,vpnEventType
-])
 export const responseType = Type.Array(eventType)
 
 export default function (instance: instance, _options:any, done:VoidFunction) {
