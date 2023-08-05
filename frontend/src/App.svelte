@@ -156,7 +156,7 @@ style:--text-color={theme == "dark" ? "rgba(255, 255, 255, 0.89)" : "rgba(0, 0, 
 
 <style lang="scss">
   main {
-    height: 100%;
+    height: auto;
     background-color: var(--main-background);
   }
   p {
